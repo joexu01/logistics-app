@@ -38,7 +38,7 @@ type PrivateSubItem struct {
 	Operator   string    `json:"operator"`
 }
 
-type LogisticsCombineRecord struct {
+type LogisticsCombinedRecord struct {
 	Public  *LogisticsRecord        `json:"public"`
 	Private *PrivateLogisticsRecord `json:"private"`
 }

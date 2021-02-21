@@ -11,10 +11,10 @@ import (
 	"strings"
 )
 
-type Retailer1Controller struct{}
+type Retailer2Controller struct{}
 
-func Retailer1Register(router *gin.RouterGroup) {
-	r := &Retailer1Controller{}
+func Retailer2Register(router *gin.RouterGroup) {
+	r := &Retailer2Controller{}
 	router.POST("/sign/:id", r.SignForPackage)
 
 	router.GET("/product/:id", r.ReadProductInfo)
@@ -25,14 +25,14 @@ func Retailer1Register(router *gin.RouterGroup) {
 // SignForPackage godoc
 // @Summary 签收货物
 // @Description 签收货物
-// @Tags 零售商1-Retailer1
+// @Tags 零售商2-Retailer2
 // @Accept  json
 // @Produce  json
 // @Param body body dto.UpdateLogisticRecordInput true "body"
 // @Param id path string true "物流追踪ID"
 // @Success 200 {object} middleware.Response{data=string} "success"
-// @Router /retailer1/sign/{id} [post]
-func (r *Retailer1Controller) SignForPackage(c *gin.Context) {
+// @Router /retailer2/sign/{id} [post]
+func (r *Retailer2Controller) SignForPackage(c *gin.Context) {
 	trackingID := c.Param("id")
 	if trackingID == "" {
 		middleware.ResponseError(c, 2001, errors.New("tracking ID is empty"))
@@ -45,7 +45,7 @@ func (r *Retailer1Controller) SignForPackage(c *gin.Context) {
 		return
 	}
 
-	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer1)
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer2)
 	if err != nil {
 		middleware.ResponseError(c, 2002, err)
 		return
@@ -53,7 +53,7 @@ func (r *Retailer1Controller) SignForPackage(c *gin.Context) {
 
 	args := strings.Join([]string{
 		`"` + trackingID + `"`,
-		`"` + `零售商1-Retailer1: ` + input.Status + `"`,
+		`"` + `零售商2-Retailer2: ` + input.Status + `"`,
 	}, ",")
 
 	invoke, err := sdkCtx.Invoke(fabsdk.FuncUpdateLogisticRecord, args, "", "")
@@ -68,20 +68,20 @@ func (r *Retailer1Controller) SignForPackage(c *gin.Context) {
 // ReadProductInfo godoc
 // @Summary 读取货物批次详情
 // @Description 读取货物批次详情
-// @Tags 零售商1-Retailer1
+// @Tags 零售商2-Retailer2
 // @Accept  json
 // @Produce  json
 // @Param id path string true "批次编号"
 // @Success 200 {object} middleware.Response{data=dao.ProductInfo} "success"
-// @Router /retailer1/product/{id} [get]
-func (r *Retailer1Controller) ReadProductInfo(c *gin.Context) {
+// @Router /retailer2/product/{id} [get]
+func (r *Retailer2Controller) ReadProductInfo(c *gin.Context) {
 	batchNum := c.Param("id")
 	if batchNum == "" {
 		middleware.ResponseError(c, 2001, errors.New("please specify batch number"))
 		return
 	}
 
-	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer1)
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer2)
 	if err != nil {
 		middleware.ResponseError(c, 2002, err)
 		return
@@ -107,20 +107,20 @@ func (r *Retailer1Controller) ReadProductInfo(c *gin.Context) {
 // ReadTrackingResult godoc
 // @Summary 读取物流详情
 // @Description 读取物流详情
-// @Tags 零售商1-Retailer1
+// @Tags 零售商2-Retailer2
 // @Accept  json
 // @Produce  json
 // @Param id path string true "物流号"
 // @Success 200 {object} middleware.Response{data=dao.LogisticsRecord} "success"
-// @Router /retailer1/tracking/{id} [get]
-func (r *Retailer1Controller) ReadTrackingResult(c *gin.Context) {
+// @Router /retailer2/tracking/{id} [get]
+func (r *Retailer2Controller) ReadTrackingResult(c *gin.Context) {
 	trackingNum := c.Param("id")
 	if trackingNum == "" {
 		middleware.ResponseError(c, 2001, errors.New("tracking ID is empty string"))
 		return
 	}
 
-	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer1)
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer2)
 	if err != nil {
 		middleware.ResponseError(c, 2002, err)
 		return
@@ -147,20 +147,20 @@ func (r *Retailer1Controller) ReadTrackingResult(c *gin.Context) {
 // ReadOrderInfo godoc
 // @Summary 读取订单详情
 // @Description 读取订单详情
-// @Tags 零售商1-Retailer1
+// @Tags 零售商2-Retailer2
 // @Accept  json
 // @Produce  json
 // @Param id path string true "订单号"
 // @Success 200 {object} middleware.Response{data=dao.OrderInfo} "success"
-// @Router /retailer1/order/{id} [get]
-func (r *Retailer1Controller) ReadOrderInfo(c *gin.Context) {
+// @Router /retailer2/order/{id} [get]
+func (r *Retailer2Controller) ReadOrderInfo(c *gin.Context) {
 	orderID := c.Param("id")
 	if orderID == "" {
 		middleware.ResponseError(c, 2001, errors.New("order ID is empty string"))
 		return
 	}
 
-	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer1)
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer2)
 	if err != nil {
 		middleware.ResponseError(c, 2002, err)
 		return
@@ -168,7 +168,7 @@ func (r *Retailer1Controller) ReadOrderInfo(c *gin.Context) {
 
 	args := strings.Join([]string{
 		`"` + orderID + `"`,
-		`"` + fabsdk.CollectionTransaction1 + `"`,
+		`"` + fabsdk.CollectionTransaction2 + `"`,
 	}, ",")
 
 	query, err := sdkCtx.Query(fabsdk.FuncReadOrderInfo, args, false)
@@ -183,3 +183,4 @@ func (r *Retailer1Controller) ReadOrderInfo(c *gin.Context) {
 
 	middleware.ResponseSuccess(c, orderInfo)
 }
+

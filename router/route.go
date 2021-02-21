@@ -98,5 +98,37 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 		controller.LogisticsRegister(logisticsGroup)
 	}
 
+	retailer1Group := router.Group("/retailer1")
+	retailer1Group.Use(
+		sessions.Sessions("mysession", store),
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.TranslationMiddleware(),
+	)
+	{
+		controller.Retailer1Register(retailer1Group)
+	}
+
+	retailer2Group := router.Group("/retailer2")
+	retailer2Group.Use(
+		sessions.Sessions("mysession", store),
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.TranslationMiddleware(),
+	)
+	{
+		controller.Retailer2Register(retailer2Group)
+	}
+
+	regulatorGroup := router.Group("/regulator")
+	regulatorGroup.Use(
+		sessions.Sessions("mysession", store),
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.TranslationMiddleware(),
+	)
+	{
+		controller.RegulatorRegister(regulatorGroup)
+	}
 	return router
 }

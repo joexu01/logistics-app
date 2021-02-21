@@ -114,7 +114,7 @@ func (l *LogisticsController) ReadProductInfo(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "物流号"
-// @Success 200 {object} middleware.Response{data=dao.LogisticsCombineRecord} "success"
+// @Success 200 {object} middleware.Response{data=dao.LogisticsCombinedRecord} "success"
 // @Router /logistics/tracking/{id} [get]
 func (l *LogisticsController) ReadTrackingResult(c *gin.Context) {
 	trackingNum := c.Param("id")
@@ -139,7 +139,7 @@ func (l *LogisticsController) ReadTrackingResult(c *gin.Context) {
 
 	resp := strings.ReplaceAll(string(query), `\`, ``)
 
-	combineResult := &dao.LogisticsCombineRecord{}
+	combineResult := &dao.LogisticsCombinedRecord{}
 	_ = json.Unmarshal([]byte(resp), combineResult)
 
 	middleware.ResponseSuccess(c, combineResult)
