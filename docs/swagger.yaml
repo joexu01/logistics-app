@@ -1,0 +1,368 @@
+definitions:
+  dao.LogisticsCombineRecord:
+    properties:
+      private:
+        $ref: '#/definitions/dao.PrivateLogisticsRecord'
+      public:
+        $ref: '#/definitions/dao.LogisticsRecord'
+    type: object
+  dao.LogisticsRecord:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dao.RecordSubItem'
+        type: array
+    type: object
+  dao.OrderInfo:
+    properties:
+      batch_number:
+        description: OrderNumber    string  `json:"order_number"`
+        type: string
+      client:
+        type: string
+      quantity:
+        type: integer
+      sorter:
+        description: 分拣员
+        type: string
+      tracking_number:
+        type: string
+      unit_price:
+        type: number
+    type: object
+  dao.PrivateLogisticsRecord:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dao.PrivateSubItem'
+        type: array
+    type: object
+  dao.PrivateSubItem:
+    properties:
+      operator:
+        type: string
+      peer_id:
+        type: string
+      record_time:
+        type: string
+    type: object
+  dao.ProductInfo:
+    properties:
+      amount:
+        type: integer
+      last_modified:
+        type: string
+      name:
+        type: string
+      origin:
+        type: string
+    type: object
+  dao.RecordSubItem:
+    properties:
+      record_time:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.OrderInput:
+    properties:
+      batch_number:
+        type: string
+      collection:
+        type: string
+      order_number:
+        type: string
+      quantity:
+        type: integer
+      sorter:
+        description: 分拣员
+        type: string
+      tracking_number:
+        type: string
+      unit_price:
+        type: number
+    type: object
+  dto.ProductInfoInput:
+    properties:
+      amount:
+        type: integer
+      batch_num:
+        type: string
+      name:
+        type: string
+      origin:
+        type: string
+    type: object
+  dto.UpdateLogisticRecordInput:
+    properties:
+      operator:
+        type: string
+      status:
+        type: string
+      tracking_num:
+        type: string
+    type: object
+  middleware.Response:
+    properties:
+      data:
+        type: object
+      errmsg:
+        type: string
+      errno:
+        type: integer
+      stack:
+        type: object
+      trace_id:
+        type: object
+    type: object
+info:
+  contact: {}
+paths:
+  /logistics/product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 读取货物批次详情
+      parameters:
+      - description: 批次编号
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ProductInfo'
+              type: object
+      summary: 读取货物批次详情
+      tags:
+      - 物流企业-Logistics
+  /logistics/tracking/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 读取物流详情
+      parameters:
+      - description: 物流号
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.LogisticsCombineRecord'
+              type: object
+      summary: 读取物流详情
+      tags:
+      - 物流企业-Logistics
+  /logistics/update/{id}:
+    post:
+      consumes:
+      - application/json
+      description: 物流记录上链
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateLogisticRecordInput'
+      - description: 物流追踪ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 物流记录上链
+      tags:
+      - 物流企业-Logistics
+  /manufacturer/order:
+    post:
+      consumes:
+      - application/json
+      description: 新建订单
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 新建订单
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/order/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 读取订单详情
+      parameters:
+      - description: 订单号
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collection名称
+        in: query
+        name: collection
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.OrderInfo'
+              type: object
+      summary: 读取订单详情
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/product:
+    post:
+      consumes:
+      - application/json
+      description: 商品信息上链
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProductInfoInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 商品信息上链
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 读取货物批次详情
+      parameters:
+      - description: 批次编号
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ProductInfo'
+              type: object
+      summary: 读取货物批次详情
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/send:
+    post:
+      consumes:
+      - application/json
+      description: 发货记录上链
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateLogisticRecordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 发货记录上链
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/tracking/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 读取物流详情
+      parameters:
+      - description: 物流号
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.LogisticsRecord'
+              type: object
+      summary: 读取物流详情
+      tags:
+      - 制造商-Manufacturer
+swagger: "2.0"
