@@ -130,5 +130,15 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	{
 		controller.RegulatorRegister(regulatorGroup)
 	}
+
+	login := router.Group("/account")
+	login.Use(
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.TranslationMiddleware(),
+	)
+	{
+		controller.AdminLoginRegister(login)
+	}
 	return router
 }

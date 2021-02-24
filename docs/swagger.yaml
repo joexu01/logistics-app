@@ -64,6 +64,30 @@ definitions:
       status:
         type: string
     type: object
+  dto.AdminInfoOutput:
+    properties:
+      avatar:
+        type: string
+      id:
+        type: integer
+      introduction:
+        type: string
+      login_time:
+        type: string
+      name:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.AdminLoginOutput:
+    properties:
+      token:
+        description: 返回的Token
+        example: token
+        type: string
+    type: object
   dto.OrderInput:
     properties:
       batch_number:
@@ -118,6 +142,48 @@ definitions:
 info:
   contact: {}
 paths:
+  /account/info:
+    get:
+      consumes:
+      - application/json
+      description: 管理员信息接口
+      operationId: /admin/info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminInfoOutput'
+              type: object
+      summary: 管理员信息
+      tags:
+      - 管理员接口
+  /account/login:
+    post:
+      consumes:
+      - application/json
+      description: 管理员登陆
+      operationId: /account/login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminLoginOutput'
+              type: object
+      summary: 管理员登陆
+      tags:
+      - 管理员接口
   /logistics/product/{id}:
     get:
       consumes:

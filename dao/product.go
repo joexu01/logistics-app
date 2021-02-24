@@ -1,12 +1,10 @@
 package dao
 
-import "time"
-
 type ProductInfo struct {
-	Amount       int       `json:"amount"`
-	Origin       string    `json:"origin"`
-	Name         string    `json:"name"`
-	LastModified time.Time `json:"last_modified"`
+	Amount       int    `json:"amount"`
+	Origin       string `json:"origin"`
+	Name         string `json:"name"`
+	LastModified string `json:"last_modified"`
 }
 
 type OrderInfo struct {
@@ -24,8 +22,8 @@ type LogisticsRecord struct {
 }
 
 type RecordSubItem struct {
-	RecordTime time.Time `json:"record_time"`
-	Status     string    `json:"status"`
+	RecordTime string `json:"record_time"`
+	Status     string `json:"status"`
 }
 
 type PrivateLogisticsRecord struct {
@@ -33,9 +31,9 @@ type PrivateLogisticsRecord struct {
 }
 
 type PrivateSubItem struct {
-	RecordTime time.Time `json:"record_time"`
-	PeerID     string    `json:"peer_id"`
-	Operator   string    `json:"operator"`
+	RecordTime string `json:"record_time"`
+	PeerID     string `json:"peer_id"`
+	Operator   string `json:"operator"`
 }
 
 type LogisticsCombinedRecord struct {
