@@ -513,6 +513,91 @@ var doc = `{
                 }
             }
         },
+        "/qrcode/default": {
+            "get": {
+                "description": "获取默认图像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "二维码"
+                ],
+                "summary": "获取默认图像",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QRCodeImagesURL"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qrcode/order/{id}": {
+            "get": {
+                "description": "根据订单号获取全部二维码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "二维码"
+                ],
+                "summary": "获取二维码",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "订单号",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Collection名称",
+                        "name": "collection",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QRCodeImagesURL"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/regulator/private/{id}": {
             "get": {
                 "description": "读取物流详情",
@@ -1193,6 +1278,20 @@ var doc = `{
                     "type": "string"
                 },
                 "origin": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.QRCodeImagesURL": {
+            "type": "object",
+            "properties": {
+                "query_logistics_record_url": {
+                    "type": "string"
+                },
+                "query_prod_info_url": {
+                    "type": "string"
+                },
+                "update_logistics_status_url": {
                     "type": "string"
                 }
             }

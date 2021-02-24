@@ -140,5 +140,14 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	{
 		controller.AdminLoginRegister(login)
 	}
+	qrcode := router.Group("/qrcode")
+	qrcode.Use(
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.TranslationMiddleware(),
+	)
+	{
+		controller.QRCodeRegister(qrcode)
+	}
 	return router
 }

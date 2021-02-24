@@ -117,6 +117,15 @@ definitions:
       origin:
         type: string
     type: object
+  dto.QRCodeImagesURL:
+    properties:
+      query_logistics_record_url:
+        type: string
+      query_prod_info_url:
+        type: string
+      update_logistics_status_url:
+        type: string
+    type: object
   dto.UpdateLogisticRecordInput:
     properties:
       operator:
@@ -431,6 +440,56 @@ paths:
       summary: 读取物流详情
       tags:
       - 制造商-Manufacturer
+  /qrcode/default:
+    get:
+      consumes:
+      - application/json
+      description: 获取默认图像
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QRCodeImagesURL'
+              type: object
+      summary: 获取默认图像
+      tags:
+      - 二维码
+  /qrcode/order/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据订单号获取全部二维码
+      parameters:
+      - description: 订单号
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collection名称
+        in: query
+        name: collection
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QRCodeImagesURL'
+              type: object
+      summary: 获取二维码
+      tags:
+      - 二维码
   /regulator/private/{id}:
     get:
       consumes:
