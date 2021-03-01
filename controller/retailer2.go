@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -16,10 +17,12 @@ type Retailer2Controller struct{}
 func Retailer2Register(router *gin.RouterGroup) {
 	r := &Retailer2Controller{}
 	router.POST("/sign/:id", r.SignForPackage)
+	router.POST("/order", r.CreateOrder)
 
 	router.GET("/product/:id", r.ReadProductInfo)
 	router.GET("/tracking/:id", r.ReadTrackingResult)
 	router.GET("/order/:id", r.ReadOrderInfo)
+	router.GET("/search/product/:keyword", r.SearchProductInfoByName)
 }
 
 // SignForPackage godoc
@@ -184,3 +187,88 @@ func (r *Retailer2Controller) ReadOrderInfo(c *gin.Context) {
 	middleware.ResponseSuccess(c, orderInfo)
 }
 
+// SearchProductInfoByName godoc
+// @Summary 根据货物名称搜索批次详情
+// @Description 根据货物名称搜索批次详情
+// @Tags 零售商2-Retailer2
+// @Accept  json
+// @Produce  json
+// @Param keyword path string true "关键词-商品名称"
+// @Success 200 {object} middleware.Response{data=dao.ProductInfo} "success"
+// @Router /retailer2/search/product/{keyword} [get]
+func (r *Retailer2Controller) SearchProductInfoByName(c *gin.Context) {
+	keyword := c.Param("keyword")
+	if keyword == "" {
+		middleware.ResponseError(c, 2001, errors.New("keyword is empty"))
+		return
+	}
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer2)
+	if err != nil {
+		middleware.ResponseError(c, 2002, err)
+		return
+	}
+
+	arg := `"` + keyword + `"`
+
+	query, err := sdkCtx.Query(fabsdk.FuncReadProductInfoByProductName, arg, false)
+	if err != nil {
+		middleware.ResponseError(c, 2003, errors.New(string(query)))
+		return
+	}
+
+	result := strings.ReplaceAll(string(query), "\n", "")
+	result = strings.ReplaceAll(result, `\`, ``)
+
+	var products []dao.ProductInfo
+	err = json.Unmarshal([]byte(result), &products)
+	if err != nil {
+		middleware.ResponseError(c, 2004, err)
+		return
+	}
+
+	middleware.ResponseSuccess(c, products)
+}
+
+// CreateOrder godoc
+// @Summary 新建订单
+// @Description 新建订单
+// @Tags 零售商2-Retailer2
+// @Accept  json
+// @Produce  json
+// @Param body body dto.OrderInput true "body"
+// @Success 200 {object} middleware.Response{data=string} "success"
+// @Router /retailer2/order [post]
+func (r *Retailer2Controller) CreateOrder(c *gin.Context) {
+	orderInput := &dto.OrderInput{}
+	err := orderInput.BindingValidParams(c)
+	if err != nil {
+		middleware.ResponseError(c, 2001, err)
+		return
+	}
+
+	orderInput.Collection = fabsdk.CollectionTransaction2
+
+	bytes, err := json.Marshal(orderInput)
+	if err != nil {
+		middleware.ResponseError(c, 2002, err)
+		return
+	}
+
+	transient := base64.StdEncoding.EncodeToString(bytes)
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRetailer2)
+	if err != nil {
+		middleware.ResponseError(c, 2003, err)
+		return
+	}
+
+	invoke, err := sdkCtx.Invoke(fabsdk.FuncNewOrder, "", fabsdk.TransientKeyOrderInput, transient)
+	if err != nil {
+		middleware.ResponseError(c, 2004, errors.New(string(invoke)))
+		return
+	}
+	resp := strings.ReplaceAll(string(invoke), `\`, ``)
+
+	middleware.ResponseSuccess(c, resp)
+}

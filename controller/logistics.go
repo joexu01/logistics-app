@@ -20,6 +20,7 @@ func LogisticsRegister(router *gin.RouterGroup) {
 
 	router.GET("/product/:id", l.ReadProductInfo)
 	router.GET("/tracking/:id", l.ReadTrackingResult)
+	router.GET("/search/product/:keyword", l.SearchProductInfoByName)
 }
 
 // UpdateLogisticsRecord godoc
@@ -143,4 +144,47 @@ func (l *LogisticsController) ReadTrackingResult(c *gin.Context) {
 	_ = json.Unmarshal([]byte(resp), combineResult)
 
 	middleware.ResponseSuccess(c, combineResult)
+}
+
+// SearchProductInfoByName godoc
+// @Summary 根据货物名称搜索批次详情
+// @Description 根据货物名称搜索批次详情
+// @Tags 物流企业-Logistics
+// @Accept  json
+// @Produce  json
+// @Param keyword path string true "关键词-商品名称"
+// @Success 200 {object} middleware.Response{data=dao.ProductInfo} "success"
+// @Router /logistics/search/product/{keyword} [get]
+func (l *LogisticsController) SearchProductInfoByName(c *gin.Context) {
+	keyword := c.Param("keyword")
+	if keyword == "" {
+		middleware.ResponseError(c, 2001, errors.New("keyword is empty"))
+		return
+	}
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMLogistics)
+	if err != nil {
+		middleware.ResponseError(c, 2002, err)
+		return
+	}
+
+	arg := `"` + keyword + `"`
+
+	query, err := sdkCtx.Query(fabsdk.FuncReadProductInfoByProductName, arg, false)
+	if err != nil {
+		middleware.ResponseError(c, 2003, errors.New(string(query)))
+		return
+	}
+
+	result := strings.ReplaceAll(string(query), "\n", "")
+	result = strings.ReplaceAll(result, `\`, ``)
+
+	var products []dao.ProductInfo
+	err = json.Unmarshal([]byte(result), &products)
+	if err != nil {
+		middleware.ResponseError(c, 2004, err)
+		return
+	}
+
+	middleware.ResponseSuccess(c, products)
 }

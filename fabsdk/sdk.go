@@ -10,14 +10,19 @@ const (
 	FuncNewProductInfo       = "NewProductInfo"
 	FuncNewOrder             = "NewOrder"
 	FuncUpdateLogisticRecord = "UpdateLogisticRecord"
+	FuncAcceptOrder          = "AcceptOrder"
+	FuncRejectOrderRequest   = "RejectOrderRequest"
 
-	FuncReadProductInfo = "ReadProductInfo"
-	FuncReadOrderInfo = "ReadOrderInfo"
-	FuncReadLogisticsRecord = "ReadLogisticsRecord"
-	FuncReadLogisticsPriRecord = "ReadLogisticsPriRecord"
+	FuncReadProductInfo              = "ReadProductInfo"
+	FuncReadOrderInfo                = "ReadOrderInfo"
+	FuncReadLogisticsRecord          = "ReadLogisticsRecord"
+	FuncReadLogisticsPriRecord       = "ReadLogisticsPriRecord"
+	FuncReadProductInfoByProductName = "ReadProductInfoByProductName"
+	FuncGetOrdersUnaccepted          = "GetOrdersUnaccepted"
 
 	TransientKeyOrderInput            = "order_input"
 	TransientKeyLogisticOperatorInput = "operator_info"
+	TransientKeyAcceptOrderInput      = "accept_order_input"
 
 	MSPIDManufacturer = "ManufacturerMSP"
 	MSPIDRetailer1    = "Retailer1MSP"
@@ -37,6 +42,10 @@ const (
 	NUMRetailer1    = 3
 	NUMRetailer2    = 4
 	NUMRegulator    = 5
+
+	OrderStatusAccepted   = "Accepted"
+	OrderStatusRejected   = "Rejected"
+	OrderStatusUnaccepted = "Unaccepted"
 )
 
 type FabricSDKCtx struct {
@@ -116,7 +125,7 @@ func NewFabSDKCtx(org int) (*FabricSDKCtx, error) {
 }
 
 // Invoke argument transientData: base64-encoded string
-func (c *FabricSDKCtx) Invoke(function, args, transientKey, transientData string) ([]byte, error){
+func (c *FabricSDKCtx) Invoke(function, args, transientKey, transientData string) ([]byte, error) {
 	var cmd *exec.Cmd
 	if transientKey == "" {
 		cmd = exec.Command("bin/peer", "chaincode", "invoke",
@@ -126,7 +135,7 @@ func (c *FabricSDKCtx) Invoke(function, args, transientKey, transientData string
 			`--cafile`, c.TlsCACertFile,
 			`-C`, c.Channel, "-n", c.CCName,
 			"-c", `{"function":"`+function+`","Args":[`+args+`]}`,
-			)
+		)
 	} else {
 		cmd = exec.Command("bin/peer", "chaincode", "invoke",
 			"-o", "localhost:7050",
@@ -136,7 +145,7 @@ func (c *FabricSDKCtx) Invoke(function, args, transientKey, transientData string
 			`-C`, c.Channel, "-n", c.CCName,
 			"-c", `{"function":"`+function+`","Args":[`+args+`]}`,
 			`--transient`, `{"`+transientKey+`":"`+transientData+`"}`,
-			)
+		)
 	}
 
 	cmd.Env = c.Env
@@ -153,12 +162,12 @@ func (c *FabricSDKCtx) Query(function, args string, tls bool) ([]byte, error) {
 			`--cafile`, c.TlsCACertFile,
 			`-C`, c.Channel, "-n", c.CCName,
 			"-c", `{"function":"`+function+`","Args":[`+args+`]}`,
-			)
+		)
 	} else {
 		cmd = exec.Command("bin/peer", "chaincode", "query",
 			`-C`, c.Channel, "-n", c.CCName,
 			"-c", `{"function":"`+function+`","Args":[`+args+`]}`,
-			)
+		)
 	}
 	cmd.Env = c.Env
 	return cmd.CombinedOutput()

@@ -17,16 +17,28 @@ func (params *ProductInfoInput) BindingValidParams(c *gin.Context) error {
 }
 
 type OrderInput struct {
-	OrderNumber    string  `json:"order_number" form:"order_number"`
-	BatchNumber    string  `json:"batch_number" form:"batch_number"`
-	TrackingNumber string  `json:"tracking_number" form:"tracking_number"`
-	Sorter         string  `json:"sorter" form:"sorter"` // 分拣员
-	UnitPrice      float32 `json:"unit_price" form:"unit_price"`
-	Quantity       int     `json:"quantity" form:"quantity"`
-	Collection     string  `json:"collection" form:"collection"`
+	OrderNumber string `json:"order_number"`
+	//BatchNumber    string  `json:"batch_number"`
+	//TrackingNumber string  `json:"tracking_number"`
+	//Sorter         string  `json:"sorter"` // 分拣员
+	//UnitPrice   float32 `json:"unit_price"`
+	Quantity    int    `json:"quantity"`
+	Collection  string `json:"collection"`
+	ProductName string `json:"product_name"`
 }
 
 func (params *OrderInput) BindingValidParams(c *gin.Context) error {
+	return public.DefaultGetValidParams(c, params)
+}
+
+type AcceptOrderInput struct {
+	BatchNumber    string  `json:"batch_number"`
+	TrackingNumber string  `json:"tracking_number"`
+	Sorter         string  `json:"sorter"` // 分拣员
+	UnitPrice      float32 `json:"unit_price"`
+}
+
+func (params *AcceptOrderInput) BindingValidParams(c *gin.Context) error {
 	return public.DefaultGetValidParams(c, params)
 }
 
