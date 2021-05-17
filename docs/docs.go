@@ -140,6 +140,50 @@ var doc = `{
                 }
             }
         },
+        "/logistics/search/product/{keyword}": {
+            "get": {
+                "description": "根据货物名称搜索批次详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "物流企业-Logistics"
+                ],
+                "summary": "根据货物名称搜索批次详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "关键词-商品名称",
+                        "name": "keyword",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.ProductInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/logistics/tracking/{id}": {
             "get": {
                 "description": "读取物流详情",
@@ -237,9 +281,9 @@ var doc = `{
                 }
             }
         },
-        "/manufacturer/order": {
-            "post": {
-                "description": "新建订单",
+        "/manufacturer/order/accept/{id}": {
+            "put": {
+                "description": "接受订单",
                 "consumes": [
                     "application/json"
                 ],
@@ -249,15 +293,28 @@ var doc = `{
                 "tags": [
                     "制造商-Manufacturer"
                 ],
-                "summary": "新建订单",
+                "summary": "接受订单",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "订单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Collection名称",
+                        "name": "collection",
+                        "in": "query"
+                    },
                     {
                         "description": "body",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.OrderInput"
+                            "$ref": "#/definitions/dto.AcceptOrderInput"
                         }
                     }
                 ],
@@ -283,7 +340,7 @@ var doc = `{
                 }
             }
         },
-        "/manufacturer/order/{id}": {
+        "/manufacturer/order/read/{id}": {
             "get": {
                 "description": "读取订单详情",
                 "consumes": [
@@ -304,6 +361,100 @@ var doc = `{
                         "in": "path",
                         "required": true
                     },
+                    {
+                        "type": "string",
+                        "description": "Collection名称",
+                        "name": "collection",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.OrderInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/manufacturer/order/reject/{id}": {
+            "get": {
+                "description": "拒绝订单",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "制造商-Manufacturer"
+                ],
+                "summary": "拒绝订单",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "订单ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Collection名称",
+                        "name": "collection",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/manufacturer/order/unaccepted": {
+            "get": {
+                "description": "读取接受到的订单请求",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "制造商-Manufacturer"
+                ],
+                "summary": "读取接受到的订单请求",
+                "parameters": [
                     {
                         "type": "string",
                         "description": "Collection名称",
@@ -397,6 +548,50 @@ var doc = `{
                         "type": "string",
                         "description": "批次编号",
                         "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.ProductInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/manufacturer/search/product/{keyword}": {
+            "get": {
+                "description": "根据货物名称搜索批次详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "制造商-Manufacturer"
+                ],
+                "summary": "根据货物名称搜索批次详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "关键词-商品名称",
+                        "name": "keyword",
                         "in": "path",
                         "required": true
                     }
@@ -686,6 +881,50 @@ var doc = `{
                 }
             }
         },
+        "/regulator/search/product/{keyword}": {
+            "get": {
+                "description": "根据货物名称搜索批次详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "监管机构-Regulator"
+                ],
+                "summary": "根据货物名称搜索批次详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "关键词-商品名称",
+                        "name": "keyword",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.ProductInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/regulator/tracking/{id}": {
             "get": {
                 "description": "读取物流详情",
@@ -721,6 +960,52 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/dao.LogisticsRecord"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/retailer1/order": {
+            "post": {
+                "description": "新建订单",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "零售商1-Retailer1"
+                ],
+                "summary": "新建订单",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OrderInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
                                         }
                                     }
                                 }
@@ -792,6 +1077,50 @@ var doc = `{
                         "type": "string",
                         "description": "批次编号",
                         "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.ProductInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/retailer1/search/product/{keyword}": {
+            "get": {
+                "description": "根据货物名称搜索批次详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "零售商1-Retailer1"
+                ],
+                "summary": "根据货物名称搜索批次详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "关键词-商品名称",
+                        "name": "keyword",
                         "in": "path",
                         "required": true
                     }
@@ -915,6 +1244,52 @@ var doc = `{
                 }
             }
         },
+        "/retailer2/order": {
+            "post": {
+                "description": "新建订单",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "零售商2-Retailer2"
+                ],
+                "summary": "新建订单",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OrderInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/retailer2/order/{id}": {
             "get": {
                 "description": "读取订单详情",
@@ -977,6 +1352,50 @@ var doc = `{
                         "type": "string",
                         "description": "批次编号",
                         "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.ProductInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/retailer2/search/product/{keyword}": {
+            "get": {
+                "description": "根据货物名称搜索批次详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "零售商2-Retailer2"
+                ],
+                "summary": "根据货物名称搜索批次详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "关键词-商品名称",
+                        "name": "keyword",
                         "in": "path",
                         "required": true
                     }
@@ -1134,11 +1553,20 @@ var doc = `{
                 "client": {
                     "type": "string"
                 },
+                "order_id": {
+                    "type": "string"
+                },
+                "product_name": {
+                    "type": "string"
+                },
                 "quantity": {
                     "type": "integer"
                 },
                 "sorter": {
                     "description": "分拣员",
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "tracking_number": {
@@ -1180,6 +1608,9 @@ var doc = `{
                 "amount": {
                     "type": "integer"
                 },
+                "batch_number": {
+                    "type": "string"
+                },
                 "last_modified": {
                     "type": "string"
                 },
@@ -1199,6 +1630,24 @@ var doc = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.AcceptOrderInput": {
+            "type": "object",
+            "properties": {
+                "batch_number": {
+                    "type": "string"
+                },
+                "sorter": {
+                    "description": "分拣员",
+                    "type": "string"
+                },
+                "tracking_number": {
+                    "type": "string"
+                },
+                "unit_price": {
+                    "type": "number"
                 }
             }
         },
@@ -1241,27 +1690,18 @@ var doc = `{
         "dto.OrderInput": {
             "type": "object",
             "properties": {
-                "batch_number": {
-                    "type": "string"
-                },
                 "collection": {
                     "type": "string"
                 },
                 "order_number": {
                     "type": "string"
                 },
+                "product_name": {
+                    "type": "string"
+                },
                 "quantity": {
+                    "description": "BatchNumber    string  ` + "`" + `json:\"batch_number\"` + "`" + `\nTrackingNumber string  ` + "`" + `json:\"tracking_number\"` + "`" + `\nSorter         string  ` + "`" + `json:\"sorter\"` + "`" + ` // 分拣员\nUnitPrice   float32 ` + "`" + `json:\"unit_price\"` + "`" + `",
                     "type": "integer"
-                },
-                "sorter": {
-                    "description": "分拣员",
-                    "type": "string"
-                },
-                "tracking_number": {
-                    "type": "string"
-                },
-                "unit_price": {
-                    "type": "number"
                 }
             }
         },

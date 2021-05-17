@@ -20,10 +20,16 @@ definitions:
         type: string
       client:
         type: string
+      order_id:
+        type: string
+      product_name:
+        type: string
       quantity:
         type: integer
       sorter:
         description: 分拣员
+        type: string
+      status:
         type: string
       tracking_number:
         type: string
@@ -50,6 +56,8 @@ definitions:
     properties:
       amount:
         type: integer
+      batch_number:
+        type: string
       last_modified:
         type: string
       name:
@@ -63,6 +71,18 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  dto.AcceptOrderInput:
+    properties:
+      batch_number:
+        type: string
+      sorter:
+        description: 分拣员
+        type: string
+      tracking_number:
+        type: string
+      unit_price:
+        type: number
     type: object
   dto.AdminInfoOutput:
     properties:
@@ -90,21 +110,19 @@ definitions:
     type: object
   dto.OrderInput:
     properties:
-      batch_number:
-        type: string
       collection:
         type: string
       order_number:
         type: string
+      product_name:
+        type: string
       quantity:
+        description: |-
+          BatchNumber    string  `json:"batch_number"`
+          TrackingNumber string  `json:"tracking_number"`
+          Sorter         string  `json:"sorter"` // 分拣员
+          UnitPrice   float32 `json:"unit_price"`
         type: integer
-      sorter:
-        description: 分拣员
-        type: string
-      tracking_number:
-        type: string
-      unit_price:
-        type: number
     type: object
   dto.ProductInfoInput:
     properties:
@@ -219,6 +237,32 @@ paths:
       summary: 读取货物批次详情
       tags:
       - 物流企业-Logistics
+  /logistics/search/product/{keyword}:
+    get:
+      consumes:
+      - application/json
+      description: 根据货物名称搜索批次详情
+      parameters:
+      - description: 关键词-商品名称
+        in: path
+        name: keyword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ProductInfo'
+              type: object
+      summary: 根据货物名称搜索批次详情
+      tags:
+      - 物流企业-Logistics
   /logistics/tracking/{id}:
     get:
       consumes:
@@ -277,18 +321,27 @@ paths:
       summary: 物流记录上链
       tags:
       - 物流企业-Logistics
-  /manufacturer/order:
-    post:
+  /manufacturer/order/accept/{id}:
+    put:
       consumes:
       - application/json
-      description: 新建订单
+      description: 接受订单
       parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collection名称
+        in: query
+        name: collection
+        type: string
       - description: body
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.OrderInput'
+          $ref: '#/definitions/dto.AcceptOrderInput'
       produces:
       - application/json
       responses:
@@ -301,10 +354,10 @@ paths:
                 data:
                   type: string
               type: object
-      summary: 新建订单
+      summary: 接受订单
       tags:
       - 制造商-Manufacturer
-  /manufacturer/order/{id}:
+  /manufacturer/order/read/{id}:
     get:
       consumes:
       - application/json
@@ -332,6 +385,62 @@ paths:
                   $ref: '#/definitions/dao.OrderInfo'
               type: object
       summary: 读取订单详情
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/order/reject/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 拒绝订单
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collection名称
+        in: query
+        name: collection
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 拒绝订单
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/order/unaccepted:
+    get:
+      consumes:
+      - application/json
+      description: 读取接受到的订单请求
+      parameters:
+      - description: Collection名称
+        in: query
+        name: collection
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.OrderInfo'
+              type: object
+      summary: 读取接受到的订单请求
       tags:
       - 制造商-Manufacturer
   /manufacturer/product:
@@ -385,6 +494,32 @@ paths:
                   $ref: '#/definitions/dao.ProductInfo'
               type: object
       summary: 读取货物批次详情
+      tags:
+      - 制造商-Manufacturer
+  /manufacturer/search/product/{keyword}:
+    get:
+      consumes:
+      - application/json
+      description: 根据货物名称搜索批次详情
+      parameters:
+      - description: 关键词-商品名称
+        in: path
+        name: keyword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ProductInfo'
+              type: object
+      summary: 根据货物名称搜索批次详情
       tags:
       - 制造商-Manufacturer
   /manufacturer/send:
@@ -542,6 +677,32 @@ paths:
       summary: 读取货物批次详情
       tags:
       - 监管机构-Regulator
+  /regulator/search/product/{keyword}:
+    get:
+      consumes:
+      - application/json
+      description: 根据货物名称搜索批次详情
+      parameters:
+      - description: 关键词-商品名称
+        in: path
+        name: keyword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ProductInfo'
+              type: object
+      summary: 根据货物名称搜索批次详情
+      tags:
+      - 监管机构-Regulator
   /regulator/tracking/{id}:
     get:
       consumes:
@@ -568,6 +729,33 @@ paths:
       summary: 读取物流详情
       tags:
       - 监管机构-Regulator
+  /retailer1/order:
+    post:
+      consumes:
+      - application/json
+      description: 新建订单
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 新建订单
+      tags:
+      - 零售商1-Retailer1
   /retailer1/order/{id}:
     get:
       consumes:
@@ -618,6 +806,32 @@ paths:
                   $ref: '#/definitions/dao.ProductInfo'
               type: object
       summary: 读取货物批次详情
+      tags:
+      - 零售商1-Retailer1
+  /retailer1/search/product/{keyword}:
+    get:
+      consumes:
+      - application/json
+      description: 根据货物名称搜索批次详情
+      parameters:
+      - description: 关键词-商品名称
+        in: path
+        name: keyword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ProductInfo'
+              type: object
+      summary: 根据货物名称搜索批次详情
       tags:
       - 零售商1-Retailer1
   /retailer1/sign/{id}:
@@ -678,6 +892,33 @@ paths:
       summary: 读取物流详情
       tags:
       - 零售商1-Retailer1
+  /retailer2/order:
+    post:
+      consumes:
+      - application/json
+      description: 新建订单
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 新建订单
+      tags:
+      - 零售商2-Retailer2
   /retailer2/order/{id}:
     get:
       consumes:
@@ -728,6 +969,32 @@ paths:
                   $ref: '#/definitions/dao.ProductInfo'
               type: object
       summary: 读取货物批次详情
+      tags:
+      - 零售商2-Retailer2
+  /retailer2/search/product/{keyword}:
+    get:
+      consumes:
+      - application/json
+      description: 根据货物名称搜索批次详情
+      parameters:
+      - description: 关键词-商品名称
+        in: path
+        name: keyword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ProductInfo'
+              type: object
+      summary: 根据货物名称搜索批次详情
       tags:
       - 零售商2-Retailer2
   /retailer2/sign/{id}:

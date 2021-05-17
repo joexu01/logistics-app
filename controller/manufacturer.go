@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/joexu01/logistics-app/dao"
 	"github.com/joexu01/logistics-app/dto"
@@ -18,12 +19,15 @@ type ManufacturerController struct{}
 func ManufacturerRegister(router *gin.RouterGroup) {
 	m := &ManufacturerController{}
 	router.POST("/product", m.CreateProductInfo)
-	router.POST("/order", m.CreateOrder)
 	router.POST("/send", m.SendProductOff)
+	router.PUT("/order/accept/:id", m.AcceptOrder)
 
 	router.GET("/product/:id", m.ReadProductInfo)
-	router.GET("/order/:id", m.ReadOrderInfo)
+	router.GET("/order/read/:id", m.ReadOrderInfo)
 	router.GET("/tracking/:id", m.ReadTrackingResult)
+	router.GET("/order/unaccepted", m.ReadUnacceptedOrders)
+	router.GET("/order/reject/:id", m.RejectOrder)
+	router.GET("/search/product/:keyword", m.SearchProductInfoByName)
 }
 
 // CreateProductInfo godoc
@@ -63,47 +67,6 @@ func (m *ManufacturerController) CreateProductInfo(c *gin.Context) {
 	}
 
 	middleware.ResponseSuccess(c, string(bytes))
-}
-
-// CreateOrder godoc
-// @Summary 新建订单
-// @Description 新建订单
-// @Tags 制造商-Manufacturer
-// @Accept  json
-// @Produce  json
-// @Param body body dto.OrderInput true "body"
-// @Success 200 {object} middleware.Response{data=string} "success"
-// @Router /manufacturer/order [post]
-func (m *ManufacturerController) CreateOrder(c *gin.Context) {
-	orderInput := &dto.OrderInput{}
-	err := orderInput.BindingValidParams(c)
-	if err != nil {
-		middleware.ResponseError(c, 2001, err)
-		return
-	}
-
-	bytes, err := json.Marshal(orderInput)
-	if err != nil {
-		middleware.ResponseError(c, 2002, err)
-		return
-	}
-
-	transient := base64.StdEncoding.EncodeToString(bytes)
-
-	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMManufacturer)
-	if err != nil {
-		middleware.ResponseError(c, 2003, err)
-		return
-	}
-
-	invoke, err := sdkCtx.Invoke(fabsdk.FuncNewOrder, "", fabsdk.TransientKeyOrderInput, transient)
-	if err != nil {
-		middleware.ResponseError(c, 2004, err)
-		return
-	}
-	resp := strings.ReplaceAll(string(invoke), `\`, ``)
-
-	middleware.ResponseSuccess(c, resp)
 }
 
 // SendProductOff godoc
@@ -197,7 +160,7 @@ func (m *ManufacturerController) ReadProductInfo(c *gin.Context) {
 // @Param id path string true "订单号"
 // @Param collection query string false "Collection名称"
 // @Success 200 {object} middleware.Response{data=dao.OrderInfo} "success"
-// @Router /manufacturer/order/{id} [get]
+// @Router /manufacturer/order/read/{id} [get]
 func (m *ManufacturerController) ReadOrderInfo(c *gin.Context) {
 	collectionName := c.DefaultQuery("collection", fabsdk.CollectionTransaction1)
 	orderID := c.Param("id")
@@ -268,4 +231,183 @@ func (m *ManufacturerController) ReadTrackingResult(c *gin.Context) {
 	}
 
 	middleware.ResponseSuccess(c, record)
+}
+
+// ReadUnacceptedOrders godoc
+// @Summary 读取接受到的订单请求
+// @Description 读取接受到的订单请求
+// @Tags 制造商-Manufacturer
+// @Accept  json
+// @Produce  json
+// @Param collection query string false "Collection名称"
+// @Success 200 {object} middleware.Response{data=dao.OrderInfo} "success"
+// @Router /manufacturer/order/unaccepted [get]
+func (m *ManufacturerController) ReadUnacceptedOrders(c *gin.Context) {
+	collectionName := c.DefaultQuery("collection", fabsdk.CollectionTransaction1)
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMManufacturer)
+	if err != nil {
+		middleware.ResponseError(c, 2001, err)
+		return
+	}
+
+	arg := `"` + collectionName + `"`
+
+	query, err := sdkCtx.Query(fabsdk.FuncGetOrdersUnaccepted, arg, false)
+	if err != nil {
+		middleware.ResponseError(c, 2002, errors.New(string(query)))
+		return
+	}
+
+	result := strings.ReplaceAll(string(query), "\n", "")
+	result = strings.ReplaceAll(result, `\`, ``)
+
+	var orders []dao.OrderInfo
+	err = json.Unmarshal([]byte(result), &orders)
+	if err != nil {
+		middleware.ResponseError(c, 2003, fmt.Errorf("error unmarshaling JSON: %v", err))
+		return
+	}
+
+	middleware.ResponseSuccess(c, orders)
+}
+
+// AcceptOrder godoc
+// @Summary 接受订单
+// @Description 接受订单
+// @Tags 制造商-Manufacturer
+// @Accept  json
+// @Produce  json
+// @Param id path string true "订单ID"
+// @Param collection query string false "Collection名称"
+// @Param body body dto.AcceptOrderInput true "body"
+// @Success 200 {object} middleware.Response{data=string} "success"
+// @Router /manufacturer/order/accept/{id} [put]
+func (m *ManufacturerController) AcceptOrder(c *gin.Context) {
+	input := &dto.AcceptOrderInput{}
+	err := input.BindingValidParams(c)
+	if err != nil {
+		middleware.ResponseError(c, 2001, err)
+		return
+	}
+
+	collection := c.DefaultQuery("collection", "transactionCollection1")
+	orderID := c.Param("id")
+	if orderID == "" {
+		middleware.ResponseError(c, 2002, errors.New("orderID is empty string"))
+		return
+	}
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMManufacturer)
+	if err != nil {
+		middleware.ResponseError(c, 2003, err)
+		return
+	}
+
+	args := strings.Join([]string{
+		`"` + collection + `"`,
+		`"` + orderID + `"`,
+	}, ",")
+
+	bytes, err := json.Marshal(input)
+	if err != nil {
+		middleware.ResponseError(c, 2004, err)
+		return
+	}
+
+	transient := base64.StdEncoding.EncodeToString(bytes)
+
+	invoke, err := sdkCtx.Invoke(fabsdk.FuncAcceptOrder, args, fabsdk.TransientKeyAcceptOrderInput, transient)
+
+	if err != nil {
+		middleware.ResponseError(c, 2005,
+			fmt.Errorf("error invoking function %s: %s", fabsdk.FuncAcceptOrder, invoke))
+		return
+	}
+
+	middleware.ResponseSuccess(c, string(invoke))
+}
+
+// RejectOrder godoc
+// @Summary 拒绝订单
+// @Description 拒绝订单
+// @Tags 制造商-Manufacturer
+// @Accept  json
+// @Produce  json
+// @Param id path string true "订单ID"
+// @Param collection query string true "Collection名称"
+// @Success 200 {object} middleware.Response{data=string} "success"
+// @Router /manufacturer/order/reject/{id} [get]
+func (m *ManufacturerController) RejectOrder(c *gin.Context) {
+	orderID := c.Param("id")
+	if orderID == "" {
+		middleware.ResponseError(c, 2001, errors.New("order ID is empty"))
+		return
+	}
+	collection := c.Query("collection")
+	if collection == "" {
+		middleware.ResponseError(c, 2002, errors.New("collection name is empty"))
+	}
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMManufacturer)
+	if err != nil {
+		middleware.ResponseError(c, 2003, err)
+		return
+	}
+
+	args := strings.Join([]string{
+		`"` + collection + `"`,
+		`"` + orderID + `"`,
+	}, ",")
+
+	invoke, err := sdkCtx.Invoke(fabsdk.FuncRejectOrderRequest, args, "", "")
+	if err != nil {
+		middleware.ResponseError(c, 2004, errors.New(string(invoke)))
+		return
+	}
+
+	middleware.ResponseSuccess(c, string(invoke))
+}
+
+// SearchProductInfoByName godoc
+// @Summary 根据货物名称搜索批次详情
+// @Description 根据货物名称搜索批次详情
+// @Tags 制造商-Manufacturer
+// @Accept  json
+// @Produce  json
+// @Param keyword path string true "关键词-商品名称"
+// @Success 200 {object} middleware.Response{data=dao.ProductInfo} "success"
+// @Router /manufacturer/search/product/{keyword} [get]
+func (m *ManufacturerController) SearchProductInfoByName(c *gin.Context) {
+	keyword := c.Param("keyword")
+	if keyword == "" {
+		middleware.ResponseError(c, 2001, errors.New("keyword is empty"))
+		return
+	}
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMManufacturer)
+	if err != nil {
+		middleware.ResponseError(c, 2002, err)
+		return
+	}
+
+	arg := `"` + keyword + `"`
+
+	query, err := sdkCtx.Query(fabsdk.FuncReadProductInfoByProductName, arg, false)
+	if err != nil {
+		middleware.ResponseError(c, 2003, errors.New(string(query)))
+		return
+	}
+
+	result := strings.ReplaceAll(string(query), "\n", "")
+	result = strings.ReplaceAll(result, `\`, ``)
+
+	var products []dao.ProductInfo
+	err = json.Unmarshal([]byte(result), &products)
+	if err != nil {
+		middleware.ResponseError(c, 2004, err)
+		return
+	}
+
+	middleware.ResponseSuccess(c, products)
 }

@@ -18,6 +18,7 @@ func RegulatorRegister(router *gin.RouterGroup) {
 	router.GET("/product/:id", r.ReadProductInfo)
 	router.GET("/tracking/:id", r.ReadTrackingResult)
 	router.GET("/private/:id", r.ReadCombinedTrackingResult)
+	router.GET("/search/product/:keyword", r.SearchProductInfoByName)
 }
 
 // ReadProductInfo godoc
@@ -135,4 +136,47 @@ func (r *RegulatorController) ReadCombinedTrackingResult(c *gin.Context) {
 	_ = json.Unmarshal([]byte(resp), combineResult)
 
 	middleware.ResponseSuccess(c, combineResult)
+}
+
+// SearchProductInfoByName godoc
+// @Summary 根据货物名称搜索批次详情
+// @Description 根据货物名称搜索批次详情
+// @Tags 监管机构-Regulator
+// @Accept  json
+// @Produce  json
+// @Param keyword path string true "关键词-商品名称"
+// @Success 200 {object} middleware.Response{data=dao.ProductInfo} "success"
+// @Router /regulator/search/product/{keyword} [get]
+func (r *RegulatorController) SearchProductInfoByName(c *gin.Context) {
+	keyword := c.Param("keyword")
+	if keyword == "" {
+		middleware.ResponseError(c, 2001, errors.New("keyword is empty"))
+		return
+	}
+
+	sdkCtx, err := fabsdk.NewFabSDKCtx(fabsdk.NUMRegulator)
+	if err != nil {
+		middleware.ResponseError(c, 2002, err)
+		return
+	}
+
+	arg := `"` + keyword + `"`
+
+	query, err := sdkCtx.Query(fabsdk.FuncReadProductInfoByProductName, arg, false)
+	if err != nil {
+		middleware.ResponseError(c, 2003, errors.New(string(query)))
+		return
+	}
+
+	result := strings.ReplaceAll(string(query), "\n", "")
+	result = strings.ReplaceAll(result, `\`, ``)
+
+	var products []dao.ProductInfo
+	err = json.Unmarshal([]byte(result), &products)
+	if err != nil {
+		middleware.ResponseError(c, 2004, err)
+		return
+	}
+
+	middleware.ResponseSuccess(c, products)
 }

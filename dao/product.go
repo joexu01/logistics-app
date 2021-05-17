@@ -5,9 +5,11 @@ type ProductInfo struct {
 	Origin       string `json:"origin"`
 	Name         string `json:"name"`
 	LastModified string `json:"last_modified"`
+	BatchNumber  string `json:"batch_number"`
 }
 
 type OrderInfo struct {
+	OrderID string `json:"order_id"`
 	//OrderNumber    string  `json:"order_number"`
 	BatchNumber    string  `json:"batch_number"`
 	TrackingNumber string  `json:"tracking_number"`
@@ -15,6 +17,8 @@ type OrderInfo struct {
 	UnitPrice      float32 `json:"unit_price"`
 	Quantity       int     `json:"quantity"`
 	Client         string  `json:"client"`
+	Status         string  `json:"status"`
+	ProductName    string  `json:"product_name"`
 }
 
 type LogisticsRecord struct {

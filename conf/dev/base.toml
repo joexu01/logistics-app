@@ -27,7 +27,7 @@
         color = false
 
 [swagger]
-    title="Logistics-APP swagger API"
+    title="Logistics-APP API"
     desc="Logistics Chaincode test server."
     host="127.0.0.1:8880"
     base_path=""
