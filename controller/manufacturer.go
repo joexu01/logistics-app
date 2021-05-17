@@ -233,7 +233,7 @@ func (m *ManufacturerController) ReadTrackingResult(c *gin.Context) {
 	middleware.ResponseSuccess(c, record)
 }
 
-// ReadTrackingResult godoc
+// ReadUnacceptedOrders godoc
 // @Summary 读取接受到的订单请求
 // @Description 读取接受到的订单请求
 // @Tags 制造商-Manufacturer
