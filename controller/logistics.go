@@ -93,9 +93,9 @@ func (l *LogisticsController) ReadProductInfo(c *gin.Context) {
 
 	arg := `"` + batchNum + `"`
 
-	query, err := sdkCtx.Query(fabsdk.FuncReadProductInfo, arg, false)
+	query, err := sdkCtx.Query(fabsdk.FuncReadProductInfo, arg, true)
 	if err != nil {
-		middleware.ResponseError(c, 2003, err)
+		middleware.ResponseError(c, 2003, errors.New(string(query)))
 		return
 	}
 

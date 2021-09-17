@@ -84,7 +84,7 @@ func (r *RegulatorController) ReadTrackingResult(c *gin.Context) {
 
 	arg := `"` + trackingNum + `"`
 
-	query, err := sdkCtx.Query(fabsdk.FuncReadLogisticsRecord, arg, false)
+	query, err := sdkCtx.Query(fabsdk.FuncReadLogisticsRecord, arg, true)
 	if err != nil {
 		middleware.ResponseError(c, 2003, errors.New(string(query)))
 		return
@@ -100,7 +100,7 @@ func (r *RegulatorController) ReadTrackingResult(c *gin.Context) {
 	middleware.ResponseSuccess(c, record)
 }
 
-// ReadTrackingResult godoc
+// ReadCombinedTrackingResult godoc
 // @Summary 读取物流详情
 // @Description 读取物流详情
 // @Tags 监管机构-Regulator
